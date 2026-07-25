@@ -1,0 +1,11 @@
+{
+  "name": "computer-configurator",
+  "version": "1.0.0",
+  "description": "Browser-based PC part picker with compatibility validation and power estimation.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}
