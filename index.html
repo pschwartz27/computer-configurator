@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Computer Configurator</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <h1>Computer Configurator</h1>
+  <div class="presets">
+    <label for="preset">Start from</label>
+    <select id="preset">
+      <option value="">Blank build</option>
+    </select>
+    <button id="reset" type="button" class="ghost">Clear</button>
+  </div>
+</header>
+
+<main>
+  <section class="picker" aria-label="Component selection">
+    <div class="picker-head">
+      <label class="toggle">
+        <input type="checkbox" id="hide-incompatible" checked />
+        Hide incompatible parts
+      </label>
+    </div>
+    <div id="categories"></div>
+  </section>
+
+  <aside class="summary" aria-label="Build summary">
+    <h2>Summary</h2>
+    <dl class="stats">
+      <div><dt>Total</dt><dd id="total">$0</dd></div>
+      <div><dt>Est. load</dt><dd id="wattage">0 W</dd></div>
+      <div><dt>PSU advised</dt><dd id="recommended">&mdash;</dd></div>
+    </dl>
+    <p id="status" class="status"></p>
+    <ul id="issues" class="issues"></ul>
+    <h3>Parts list</h3>
+    <ul id="parts-list" class="parts-list"></ul>
+    <div class="actions">
+      <button id="share" type="button">Copy share link</button>
+      <button id="export" type="button" class="ghost">Export JSON</button>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="src/ui.js"></script>
+</body>
+</html>
