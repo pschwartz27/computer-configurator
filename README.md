@@ -36,6 +36,8 @@ from `file://`, so open the served URL rather than the HTML file directly.
   Factor starting points.
 - **Shareable builds** — the selection lives in the URL query string, so the
   "Copy share link" button produces a link that restores the exact build.
+- **Currency picker** — prices can be shown in DKK or EUR. The choice is stored
+  in `localStorage` and in the `currency` query parameter, so share links keep it.
 - **JSON export** of the parts list, price, wattage and outstanding issues.
 
 ## Layout
@@ -46,13 +48,18 @@ from `file://`, so open the served URL rather than the HTML file directly.
 | `styles.css` | Styling |
 | `src/catalog.js` | Part catalog, categories and presets |
 | `src/engine.js` | Compatibility rules, pricing and power estimation (pure, testable) |
+| `src/currency.js` | Supported currencies, conversion and formatting |
 | `src/ui.js` | DOM rendering and event wiring |
 | `test/engine.test.js` | `node:test` suite for the engine |
+| `test/currency.test.js` | `node:test` suite for currency conversion |
 | `server.js` | Static file server for local development |
 
 The engine is deliberately free of DOM access: `evaluateBuild(selection)` takes
 a `{ category: partId }` map and returns resolved parts, total price, estimated
 wattage, recommended PSU size and a list of issues.
+
+Catalog prices are stored in USD and converted for display by `src/currency.js`,
+which holds hand-maintained fixed rates — there is no live FX feed.
 
 ## Extending the catalog
 
