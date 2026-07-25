@@ -1,10 +1,12 @@
 import { CATEGORIES, PARTS, PRESETS, findPart } from './catalog.js';
 import { evaluateBuild, compatibleParts } from './engine.js';
+import { CURRENCIES, DEFAULT_CURRENCY, convert, formatMoney, isCurrency, normalizeCurrency } from './currency.js';
 
 const els = {
   categories: document.getElementById('categories'),
   preset: document.getElementById('preset'),
   reset: document.getElementById('reset'),
+  currency: document.getElementById('currency'),
   hideIncompatible: document.getElementById('hide-incompatible'),
   total: document.getElementById('total'),
   wattage: document.getElementById('wattage'),
@@ -17,8 +19,33 @@ const els = {
 };
 
 let selection = readSelectionFromUrl();
+let currency = readCurrency();
 
-const money = (n) => '$' + n.toLocaleString('en-US');
+const money = (n) => formatMoney(n, currency);
+
+const CURRENCY_STORAGE_KEY = 'configurator.currency';
+
+function readCurrency() {
+  const fromUrl = new URLSearchParams(location.search).get('currency');
+  if (isCurrency(fromUrl)) return normalizeCurrency(fromUrl);
+  try {
+    const stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+    if (isCurrency(stored)) return normalizeCurrency(stored);
+  } catch {
+    // localStorage unavailable (private mode) — fall through to the default.
+  }
+  return DEFAULT_CURRENCY;
+}
+
+function buildCurrencyOptions() {
+  for (const { code, label } of Object.values(CURRENCIES)) {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = label;
+    els.currency.append(opt);
+  }
+  els.currency.value = currency;
+}
 
 function readSelectionFromUrl() {
   const params = new URLSearchParams(location.search);
@@ -33,6 +60,7 @@ function readSelectionFromUrl() {
 function writeSelectionToUrl() {
   const params = new URLSearchParams();
   for (const { id } of CATEGORIES) if (selection[id]) params.set(id, selection[id]);
+  params.set('currency', currency);
   const query = params.toString();
   history.replaceState(null, '', query ? `?${query}` : location.pathname);
 }
@@ -158,6 +186,17 @@ els.reset.addEventListener('click', () => {
 
 els.hideIncompatible.addEventListener('change', render);
 
+els.currency.addEventListener('change', () => {
+  currency = normalizeCurrency(els.currency.value);
+  els.currency.value = currency;
+  try {
+    localStorage.setItem(CURRENCY_STORAGE_KEY, currency);
+  } catch {
+    // Ignore storage failures; the choice still applies for this session.
+  }
+  render();
+});
+
 els.share.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(location.href);
@@ -170,12 +209,14 @@ els.share.addEventListener('click', async () => {
 els.export.addEventListener('click', () => {
   const build = evaluateBuild(selection);
   const payload = {
-    total: build.total,
+    currency,
+    total: convert(build.total, currency),
+    totalUsd: build.total,
     estimatedWatts: build.wattage,
     recommendedPsuWatts: build.recommendedPsu,
     valid: build.valid,
     parts: Object.fromEntries(
-      Object.entries(build.parts).filter(([, p]) => p).map(([k, p]) => [k, { name: p.name, price: p.price }])
+      Object.entries(build.parts).filter(([, p]) => p).map(([k, p]) => [k, { name: p.name, price: convert(p.price, currency), priceUsd: p.price }])
     ),
     issues: build.issues
   };
@@ -195,5 +236,6 @@ function flash(button, text) {
 }
 
 buildPresetOptions();
+buildCurrencyOptions();
 buildRows();
 render();
